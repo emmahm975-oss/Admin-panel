@@ -12,7 +12,15 @@ const BOTS_FILE = path.join(__dirname, 'bots.json');
 
 // ─── Helpers ───
 function readBots() {
-    return JSON.parse(fs.readFileSync(BOTS_FILE, 'utf8'));
+    if (!fs.existsSync(BOTS_FILE)) {
+        fs.writeFileSync(BOTS_FILE, '[]', 'utf8');
+        return [];
+    }
+    try {
+        return JSON.parse(fs.readFileSync(BOTS_FILE, 'utf8'));
+    } catch (e) {
+        return [];
+    }
 }
 function writeBots(bots) {
     fs.writeFileSync(BOTS_FILE, JSON.stringify(bots, null, 2), 'utf8');
