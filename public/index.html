@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — Broadcast</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        body { background: #0e0e10; color: #fff; min-height: 100vh; padding: 40px 24px; }
+
+        .container { max-width: 760px; margin: 0 auto; }
+
+        h1 { font-size: 24px; font-weight: 900; color: #F58220; margin-bottom: 6px; }
+        .sub { font-size: 13px; color: #888; margin-bottom: 28px; }
+
+        .card {
+            background: #1a1a1d; border: 1.5px solid #2a2a2e;
+            border-radius: 14px; padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        label { display: block; font-size: 12px; font-weight: 700;
+                color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+        input[type=text], textarea {
+            width: 100%; padding: 13px 14px;
+            background: #0e0e10; border: 1.5px solid #2a2a2e;
+            border-radius: 10px; color: #fff;
+            font-size: 14px; font-family: inherit; outline: none;
+            resize: vertical; transition: border-color 0.2s;
+        }
+        input[type=text]:focus, textarea:focus { border-color: #F58220; }
+        textarea { min-height: 120px; }
+
+        .btn {
+            padding: 13px 22px; font-size: 14px; font-weight: 800;
+            border-radius: 10px; border: none; cursor: pointer;
+            letter-spacing: 0.5px; transition: background 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #F58220; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #d96f18; }
+        .btn-secondary { background: #2a2a2e; color: #fff; margin-left: 8px; }
+        .btn-secondary:hover { background: #333; }
+        .btn-green { background: #16a34a; color: #fff; }
+        .btn-green:hover:not(:disabled) { background: #15803d; }
+
+        .row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+        .form-row { margin-bottom: 14px; }
+
+        .log {
+            background: #0e0e10; border: 1.5px solid #2a2a2e;
+            border-radius: 10px; padding: 16px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 12.5px;
+            line-height: 1.8; max-height: 260px; overflow-y: auto;
+            margin-top: 12px;
+        }
+        .log-line { padding: 3px 0; }
+        .log-line.success { color: #4ade80; }
+        .log-line.fail { color: #f87171; }
+        .log-line.info { color: #888; }
+
+        .bot-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0e0e10; border: 1.5px solid #2a2a2e;
+            border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        .bot-row:hover { border-color: #F58220; }
+        .bot-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+        .bot-name { font-size: 14px; font-weight: 800; color: #fff; }
+        .bot-chat { font-size: 11px; color: #888; font-family: monospace; }
+
+        .bot-actions { display: flex; gap: 6px; }
+        .bot-send-btn {
+            background: #F58220; color: #fff; border: none;
+            padding: 8px 14px; font-size: 12px; font-weight: 800;
+            border-radius: 8px; cursor: pointer; letter-spacing: 0.5px;
+        }
+        .bot-send-btn:hover:not(:disabled) { background: #d96f18; }
+        .bot-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .bot-remove-btn {
+            background: transparent; color: #f87171; border: 1.5px solid #3a2a2a;
+            padding: 8px 12px; font-size: 12px; font-weight: 800;
+            border-radius: 8px; cursor: pointer;
+        }
+        .bot-remove-btn:hover { background: #2a1a1a; }
+
+        .mt { margin-top: 18px; }
+        .hidden { display: none; }
+        .add-toggle {
+            background: transparent; color: #F58220; border: none;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            padding: 0; margin-top: 6px;
+        }
+        .add-toggle:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📢 Admin Panel</h1>
+        <p class="sub">Manage bots, send messages, broadcast to all</p>
+
+        <!-- BOTS LIST -->
+        <div class="card">
+            <label>Connected Bots</label>
+            <div id="botList">Loading…</div>
+
+            <button class="add-toggle" onclick="toggleAddForm()">➕ Add a new bot</button>
+
+            <!-- ADD BOT FORM (hidden by default) -->
+            <div id="addForm" class="mt hidden">
+                <div class="form-row">
+                    <label>Name</label>
+                    <input type="text" id="newName" placeholder="e.g. zambia-loans5">
+                </div>
+                <div class="form-row">
+                    <label>Bot Token</label>
+                    <input type="text" id="newToken" placeholder="e.g. 8123456789:AAHxxxxxxxxxxxxxxxxxx">
+                </div>
+                <div class="form-row">
+                    <label>Chat ID</label>
+                    <input type="text" id="newChat" placeholder="e.g. 8319641908">
+                </div>
+                <div class="row">
+                    <button class="btn btn-green" id="addBtn" onclick="addBot()">Add Bot</button>
+                    <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MESSAGE -->
+        <div class="card">
+            <label>Message</label>
+            <textarea id="message" placeholder="Type your message here…"></textarea>
+
+            <div class="row">
+                <button class="btn btn-primary" id="sendAllBtn" onclick="broadcastAll()">Send to All</button>
+                <button class="btn btn-secondary" onclick="clearLog()">Clear Log</button>
+            </div>
+
+            <label class="mt">Status</label>
+            <div class="log" id="log">
+                <div class="log-line info">Ready. Type a message, then click a bot's Send button or Send to All.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let bots = [];
+
+        function log(msg, cls) {
+            const el = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = 'log-line ' + (cls || '');
+            line.textContent = msg;
+            el.appendChild(line);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function toggleAddForm() {
+            document.getElementById('addForm').classList.toggle('hidden');
+        }
+
+        async function loadBots() {
+            try {
+                const res = await fetch('/api/bots');
+                const data = await res.json();
+                const list = document.getElementById('botList');
+                list.innerHTML = '';
+
+                if (data.ok && data.bots.length) {
+                    bots = data.bots;
+                    data.bots.forEach(b => {
+                        const row = document.createElement('div');
+                        row.className = 'bot-row';
+                        row.innerHTML = `
+                            <div class="bot-info">
+                                <span class="bot-name">${escapeHtml(b.name)}</span>
+                                <span class="bot-chat">chat: ${escapeHtml(b.chat)}</span>
+                            </div>
+                            <div class="bot-actions">
+                                <button class="bot-send-btn" data-index="${b.index}">Send</button>
+                                <button class="bot-remove-btn" data-index="${b.index}">✕</button>
+                            </div>
+                        `;
+                        row.querySelector('.bot-send-btn').addEventListener('click', function () {
+                            sendToOne(Number(this.dataset.index), this);
+                        });
+                        row.querySelector('.bot-remove-btn').addEventListener('click', function () {
+                            removeBot(Number(this.dataset.index));
+                        });
+                        list.appendChild(row);
+                    });
+                } else {
+                    list.textContent = 'No bots yet. Click "Add a new bot" below.';
+                }
+            } catch (err) {
+                log('❌ Failed to load bots: ' + err.message, 'fail');
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, function (c) {
+                return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+            });
+        }
+
+        async function addBot() {
+            const name  = document.getElementById('newName').value.trim();
+            const token = document.getElementById('newToken').value.trim();
+            const chat  = document.getElementById('newChat').value.trim();
+
+            if (!name || !token || !chat) {
+                log('⚠️ All fields required', 'fail');
+                return;
+            }
+
+            const btn = document.getElementById('addBtn');
+            btn.disabled = true;
+            btn.textContent = 'Adding…';
+
+            try {
+                const res = await fetch('/api/add-bot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, token, chat })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    log('✅ Bot added: ' + name, 'success');
+                    document.getElementById('newName').value = '';
+                    document.getElementById('newToken').value = '';
+                    document.getElementById('newChat').value = '';
+                    toggleAddForm();
+                    loadBots();
+                } else {
+                    log('❌ ' + (data.error || 'Failed'), 'fail');
+                }
+            } catch (err) {
+                log('❌ ' + err.message, 'fail');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Bot';
+            }
+        }
+
+        async function removeBot(index) {
+            if (!confirm('Remove this bot?')) return;
+            try {
+                const res = await fetch('/api/remove-bot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    log('🗑️ Bot removed', 'info');
+                    loadBots();
+                } else {
+                    log('❌ ' + (data.error || 'Failed'), 'fail');
+                }
+            } catch (err) {
+                log('❌ ' + err.message, 'fail');
+            }
+        }
+
+        async function sendToOne(index, btn) {
+            const message = document.getElementById('message').value.trim();
+            if (!message) { log('⚠️ Message is empty', 'fail'); return; }
+
+            const name = bots[index] ? bots[index].name : ('bot #' + index);
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '…';
+
+            log('→ Sending to ' + name + '…', 'info');
+
+            try {
+                const res = await fetch('/api/send-one', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index, message })
+                });
+                const data = await res.json();
+                if (data.ok && data.result.ok) {
+                    log('✅ ' + name + ' — sent', 'success');
+                } else {
+                    log('❌ ' + name + ' — ' + ((data.result && data.result.error) || data.error || 'failed'), 'fail');
+                }
+            } catch (err) {
+                log('❌ ' + name + ' — ' + err.message, 'fail');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = original;
+            }
+        }
+
+        async function broadcastAll() {
+            const message = document.getElementById('message').value.trim();
+            if (!message) { log('⚠️ Message is empty', 'fail'); return; }
+
+            const btn = document.getElementById('sendAllBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            log('— — — Broadcasting to ALL — — —', 'info');
+
+            try {
+                const res = await fetch('/api/broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Failed');
+
+                data.results.forEach(r => {
+                    if (r.ok) log('✅ ' + r.name + ' — sent', 'success');
+                    else log('❌ ' + r.name + ' — ' + (r.error || 'failed'), 'fail');
+                });
+                log('Done.', 'info');
+            } catch (err) {
+                log('❌ Broadcast error: ' + err.message, 'fail');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send to All';
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        loadBots();
+    </script>
+</body>
+</html>
